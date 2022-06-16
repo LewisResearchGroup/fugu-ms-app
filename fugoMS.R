@@ -649,7 +649,6 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 			
 		}
 
-		# usrCol <- myMatch(userSel, sLab )
 		temp_dat <- inDat[,usrCol]
 
 	if(!("medMz" %in% colnames(metaDat)) || !("medRt" %in% colnames(metaDat))){
