@@ -1,18 +1,25 @@
-# FUGO-MS
-Filtering utility for grouping untargeted mass spectrometry datasets 
+# FUGU-MS
+Filtering utility for grouping untargeted mass spectrometry datasets.
 
-## FUGO-App
+![FUGU-MS Logo](assets/Logo.png)
 
-![FUGO-App Landing Page](assets/FUGO-AppLandingPage.png)
+## FUGU-App
 
-To deploy the application locally, the user must have R and the Shiny package installed.
+![FUGU-App Landing Page](assets/FUGU-AppLandingPage.png)
 
-`install.packages('shiny')`
+To deploy the application locally, the user must have R and the following packages installed.
 
-Then, to run the app, simply open an R console, set the directory to one that includes `app.R` and deploy the app.
+```
+install.packages('shiny')
+install.packages("shinyWidgets")
+install.packages("shinybusy")
+```
 
-`setwd("~/FUGO-MS")`
+Then, to run the app, simply open an R console, set the directory to the project folder, and deploy the app.
 
-`runApp()`
+```
+setwd("~/FUGO-MS")
+runApp()
+```
 
 This will launch a local instance of the app on the user's machine.

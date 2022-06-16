@@ -2,15 +2,17 @@
 
 library(shiny)
 library(shinydashboard)
+library(shinyWidgets)
+library(shinybusy)
+
 source("fugoMS_app.R")
 
 
 # Helper Functions for data analysis ----
-stats_choices <- c('N/A' = 1, 'p-value' = 2)
-# stats_choices <- c('N/A' = 1, 'p-value' = 2, 'Threshold & Fold Change' = 3, 'p-value, Threshold & Fold Change' = 4)
+# stats_choices <- c('P-Value' = 1, 'Threshold' = 2, 'Fold Change' = 3)
+stats_choices <- c('P-Value' = 1, 'Threshold' = 2)
 
 PValueCalculation <- function(dat, pThresh = 1){
-  
   alpha_val <- 0.05
   pDat <- fugoStats(dat, pCalc = T, pThresh = pThresh)
   num_samples = nrow(pDat)
@@ -23,7 +25,7 @@ PValueCalculation <- function(dat, pThresh = 1){
   return(pDat)
 }
 
-ThresholdFoldCalculation <- function(dat, threshold = 20000, fold = 4){
+ThresholdCalculation <- function(dat, threshold = 20000){
   # Calculate the average threshold per species 
   mDat <- fugoStats(dat, avgRep = T)      
   
@@ -31,16 +33,28 @@ ThresholdFoldCalculation <- function(dat, threshold = 20000, fold = 4){
   thresh_num <- threshold
   idx_num <- apply(abs(metaSep(mDat)$data), 1, max) > thresh_num
   
+  ## Find data with correct intensity and fold change
+  idx <- which((idx_num) == 1)
+  out <- mDat[idx,]
+  
+  return(out)
+}
+
+FoldCalculation <- function(dat, fold = 4, reference = 1){
+  # Calculate the average threshold per species 
+  mDat <- fugoStats(dat, avgRep = T)      
+  
   # filter markers from data set if the threshold is less than 
   # 4-fold change in comparison to MHB
   thresh_fold <- fold
-  # select MHB or 1 as reference when calling this function 
-  fDat <- fugoStats(mDat, scale = 'fold')        
+
+  # select MHB or 1 as reference when calling this function
+  fDat <- fugoStats(mDat, scale = 'fold')
   idx_fold <- (apply(abs(metaSep(fDat)$data), 1, max) > thresh_fold)
-  
+
   ## Find data with correct intensity and fold change
-  idx <- which((idx_num + idx_fold) == 2)
-  out <- pDat[idx,]
+  idx <- which((idx_fold) == 1)
+  out <- mDat[idx,]
   
   return(out)
 }
@@ -49,60 +63,98 @@ getDownloadButton <- function(inputId){
   downloadButton(outputId = inputId, label = 'Download', icon = icon("download"), style = 'float: right;')
 }
 
+sendWarningAlert <- function(session, headerText, messageText, isSuccess = FALSE){
+  alertType <- 'warning'
+  if(isSuccess){
+    alertType <- 'success'
+  }
+  
+  sendSweetAlert(
+    session = session,
+    title = headerText,
+    text = messageText,
+    type = alertType
+  )
+}
+
 # Define UI for app that draws a histogram ----
 ui <- dashboardPage(
   skin = 'yellow',
-  
+
   # App title
   dashboardHeader(
-    title = "FUGO-MS",
-    titleWidth = 300
+    title = "FUGU-MS",
+    titleWidth = 350
   ),
   
   dashboardSidebar(
     sidebarMenu(
       div(
-        style = 'padding: 10px 0px -5px;',
+        style = 'padding-top: 10px;',
+        div(
+          style = 'padding: 20px',
+          imageOutput(
+            outputId = "fugoLogo",
+            height = '200px',
+          )
+        ),
         fileInput(inputId = "file1", label = "Upload Data File",
+                  width = '100%',
                   multiple = FALSE,
                   accept = ".csv")
       ),
       
       hr(),
       fluidRow(
-        h4('Statistical Analysis (Optional)'),
-        style = 'padding: 10px; text-align: center'
+        h3('Statistical Analysis'),
+        style = 'text-align: center; width: auto;'
       ),
       
-      fluidRow(
-        column(
-          width = 6,
-          numericInput('pvalueNum', 'p-value', 1, min = 0, max = 1,)
+      div(
+        style = 'padding: 0 15px',
+        fluidRow(
+          column(
+            width = 6,
+            style = 'padding: 0;',
+            numericInput('pvalueNum', 'P-Value', 1, min = 0, max = 1, step = 0.1, width = '100%'),
+          ),
+          column(
+            width = 6,
+            style = 'padding: 0;',
+            numericInput('thresholdNum', 'Threshold', 20000, step = 10000, width = '100%'),
+          )
         ),
-        column(
-          width = 6,
-          numericInput('thresholdNum', 'Threshold', 20000)
-        )
-      ),
-      fluidRow(
-        column(
-          width = 6,
-          numericInput('foldNum', 'Fold Change', 4, min = 1, max = 100)
+        fluidRow(
+          column(
+            width = 6,
+            style = 'padding: 0;',
+            numericInput('foldNum', 'Fold Change', 4, min = 1, max = 100, width = '100%'),
+          ),
+          # column(
+          #   width = 6,
+          #   style = 'padding: 0;',
+          #   selectInput(
+          #     inputId = 'referencePicker',
+          #     label = 'Reference',
+          #     choices = c("MHB" = 1, "Transmission" = 2, "Gears" = 3),
+          #     width = '100%',
+          #     # options = list(style = "btn-primary")
+          #   ),
+          # )
         ),
-        # column(
-        #   width = 6,
-        #   numericInput('clusteringNum', 'Clustering', 10, min = 1, max = 100)
-        # )
       ),
-      
-      # checkboxInput("sandbox", "p-value", value = FALSE),
-      
-      selectInput(inputId = "statAnalysisSelect",
-                  label = "Choose Statistical Analysis:",
-                  choices = stats_choices,
-                  # selected = "p-value",
-                  selectize = TRUE,
-                  multiple = FALSE),
+
+      checkboxGroupButtons(
+        inputId = "statAnalysisSelect",
+        label = "Choose analysis to apply:",
+        choices = stats_choices,
+        justified = TRUE,
+        checkIcon = list(
+          yes = tags$i(class = "fa fa-check-square", 
+                       style = "color: orange"),
+          no = tags$i(class = "fa fa-square-o", 
+                      style = "color: steelblue"))
+      ),
       
       br(),
       
@@ -116,17 +168,27 @@ ui <- dashboardPage(
       actionButton(
         inputId = "applyButton", 
         label = "Apply", 
-        class = "btn-success",
+        class = "btn-warning",
         style = 'width: 40%; margin-left: 30%; margin-right: 30%'
       )
-      
-      # style='margin:20px auto; border-radius: 25px; box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;'
     ),
-    width = 300
+    width = 350
   ),
   
   dashboardBody(
-    tags$script(HTML("$('body').addClass('fixed');")),
+    useSweetAlert(),
+    # add_busy_spinner(
+    #   spin = "fading-circle",
+    #   position = 'top-left',
+    #   margins =  c('30%', '50%'),
+    #   height = '70px',
+    #   width = '70px'
+    # ),
+    add_busy_bar(
+      timeout = 1200,
+      color = '#FF0000',
+      height = '5px'
+    ),
     
     fluidRow(
       box(
@@ -146,29 +208,26 @@ ui <- dashboardPage(
     
     # PCA, Bar Plot
     fluidRow(
-      # div(
-      #   class = "col-md-6 col-lg-4",
-      # ),
       box(
         title = 'Heat Map',
         solidHeader = TRUE,
         status = 'warning',
-        width = 6,
+        width = 12,
         # height = 500,
         textOutput('textHeatMap'),
         plotOutput("heatmap", width = "100%"),
         getDownloadButton('downloadHeatMap')
       ),
-      box(
-        title = 'Violin Plot',
-        solidHeader = TRUE,
-        status = 'warning',
-        width = 6,
-        # height = 500,
-        textOutput('textViolin'),
-        plotOutput("violin", width = "100%"),
-        getDownloadButton('downloadViolin')
-      )
+      # box(
+      #   title = 'Violin Plot',
+      #   solidHeader = TRUE,
+      #   status = 'warning',
+      #   width = 6,
+      #   # height = 500,
+      #   textOutput('textViolin'),
+      #   plotOutput("violin", width = "100%"),
+      #   getDownloadButton('downloadViolin')
+      # )
     ),
     fluidRow(
       box(
@@ -196,36 +255,55 @@ ui <- dashboardPage(
 )
 
 # Define Server for app ----
-server <- function(input, output) {
+server <- function(input, output, session) {
   options(shiny.maxRequestSize=30*1024^2)
   
-  observeEvent(input$applyButton,{
-    file <- input$file1
-    ext <- tools::file_ext(file$datapath)
+  output$fugoLogo <- renderImage({
     
+    list(
+      src = "assets/Logo.png",
+      contentType = "image/png",
+      width = '300px',
+      # height = '100%',
+      alt = "Fugo"
+    )
+    
+  }, deleteFile = FALSE)
+  
+  observeEvent(input$applyButton,{
+
+    file <- input$file1
+    if (is.null(file)) {
+      sendWarningAlert(session, 'No File Provided!', 'Please upload a data file to continue.')
+    }
+
+    ext <- tools::file_ext(file$datapath)
     req(file)
+    if (ext != "csv") {
+      sendWarningAlert(session, 'Invalid File Type!', 'Please upload a csv file.')
+      return(NULL)
+    }
     validate(need(ext == "csv", "Please upload a csv file"))
     
     data <- read.csv(file$datapath, header = TRUE)
     plotData <- data
+    pThresh <- input$pvalueNum
     threshold <- input$thresholdNum
-    pvalue <- input$pvalueNum
-    fold <- input$foldNum
+    foldValue <- input$foldNum
+    referenceMarker <- input$referencePicker
     
     statSelection <- input$statAnalysisSelect
-    if(statSelection == 1) {
-      plotData <- data
-    } else if(statSelection == 2) {
-      plotData <- PValueCalculation(data)
-    } else if(statSelection == 3) {
-      plotData <- ThresholdFoldCalculation(data, pvalue)
-    } else if(statSelection == 4) {
-      pdata <- PValueCalculation(data)
-      plotData <- ThresholdFoldCalculation(pdata, threshold, fold)
-    }
+
+    if('1' %in% statSelection)
+      plotData <- PValueCalculation(data, pThresh)
+    if('2' %in% statSelection)
+      plotData <- ThresholdCalculation(data, threshold)
+    if('3' %in% statSelection)
+      plotData <- FoldCalculation(data, foldValue, referenceMarker)
     
     output$contents <- DT::renderDataTable({
       plotData
+      # fugoStats(plotData, avgRep = T)
     })
     
     output$heatmap <- renderPlot({
@@ -240,7 +318,7 @@ server <- function(input, output) {
     res = 96
     )
     
-    underConstructionMessage <- 'Not currently available. Refer to FugoCMDScript for command line functions to visualize data.'
+    underConstructionMessage <- 'Not currently available. Refer to FugoCMDScript for information on using command line functions to visualize data.'
     
     output$textPca <- renderText({
       paste(underConstructionMessage)
@@ -267,8 +345,7 @@ server <- function(input, output) {
       filename = "fugo_HeatMap.csv",
       content = function(file) {
         write.csv(plotData, file)
-      }) 
-    
+      })
   })
 }
 
