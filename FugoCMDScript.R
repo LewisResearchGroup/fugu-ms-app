@@ -5,13 +5,59 @@
 ################################################################################
 
 # Set Working Directory
+setwd("~/OneDrive - University of Calgary/04 Software Applications/04 FUGU-MS/Repository/FUGO-MS")
 setwd('~/Desktop/Fugo')
 
 #Load in source code library, FUGO
 source(file.choose())
+source("~/OneDrive - University of Calgary/04 Software Applications/04 FUGU-MS/Repository/FUGO-MS/fugoMS.R")
+
 
 #Load S1 - Data 
 dat <- fugoRead()
+
+
+#Heatmap
+fugoPlot(dat,heatMap = T,rCst=T)
+#3D plot
+plot3D_data <- fugoPlot(dat,plot3D = T)
+#ViolinPlot
+vio <- fugoPlot(dat,vioPlot = T)
+#BoxPlot
+bar <- fugoPlot(dat,BoxWhisker = T)
+#DotPlot
+dot <- fugoPlot(dat,dotPlot = T)
+
+
+############################
+by = "\\."
+sam <- names(dat)
+sLab <- sapply( strsplit(sam, split = by), function (x) x[1])
+sLab <- sLab[-c(1,2,3)]
+grpSel <- select.list( unique(sLab), multiple = T)
+
+
+com <- dat$compound
+cmpSel <- select.list( com, multiple = T, title = "Select compounds:" )
+
+#3D plot
+plot3D_data <- fugoPlot(dat,plot3D = T,
+                        isShiny = T,shiny_grp_list=grpSel)
+#ViolinPlot
+vio <- fugoPlot(dat,vioPlot = T,
+                isShiny = T,shiny_grp_list=grpSel,shiny_cmp_list =cmpSel)
+#BoxPlot
+bar <- fugoPlot(dat,BoxWhisker = T,
+                isShiny = T,shiny_grp_list=grpSel,shiny_cmp_list =cmpSel)
+#DotPlot
+dot <- fugoPlot(dat,dotPlot = T,
+                isShiny = T,shiny_grp_list=grpSel,shiny_cmp_list =cmpSel)
+
+
+
+source("~/OneDrive - University of Calgary/04 Software Applications/04 FUGU-MS/Repository/FUGO-MS/fugoMS.R")
+
+
 
 # Run ANOVA on all markers and filter insignificant
 alpha_val <- 0.05
