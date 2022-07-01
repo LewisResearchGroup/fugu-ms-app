@@ -1,7 +1,7 @@
 ################################################################################
 ##   FUGO-MS Tools for processing and visualization of mass spectroscpy files ##
 ################################################################################
-##    Original Auther: Ian Lewis											  ##
+##    Original Author: Ian Lewis											  ##
 ##    Last Edit: Raied Aburashed 											  ##
 ## 	  Version: 1.0.0														  ##
 ##   																		  ##
@@ -85,6 +85,25 @@ metaSep <- function(inDat,
 	## remove the metaData
 	outDat <- inDat[,-na.omit(match(meta, names(inDat)))]
 	return(list( metaData = metaDat, data = outDat))
+}
+
+print_app <- function(widget) {
+  # Generate random file name
+  temp <- paste(tempfile('plotly'), 'html', sep = '.')
+  
+  # Save. Note, leaving selfcontained=TRUE created files that froze my browser
+  htmlwidgets::saveWidget(widget, temp, selfcontained = FALSE)
+  
+  # Launch with desired application
+  	if(.Platform$OS.type=="windows") {
+		  system(sprintf("chromium-browser -app=file://%s", temp))
+	}
+	else{ 
+		system(sprintf("open -a 'safari'  /%s", temp))
+	}
+  
+  # Return file name if it's needed for any other purpose
+  temp
 }
 ################################################################################
 ########################## Math Operations #####################################
@@ -323,6 +342,7 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 		pca = F, returnPCA = F, returnMeta = T, heatMap = F, sLab,vioPlot = F,dotPlot = F,
         BoxWhisker = F,plot3D=F,n=10,
 		saveFig = F,jitter = 0.2, durbinScale = 1, zlim, logScale = F,
+		isShiny=F,shiny_cmp_list = NULL,shiny_grp_list = NULL,
 		...) {
 	## check format of peaklist
 	inDat <- isInputListValid(inDat)
@@ -360,10 +380,16 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 		sx <- apply(inDat, 2L, sd, na.rm = TRUE)
 		inDat <- sweep(inDat, 2L, sx, "/", check.margin = FALSE)
 	}else if (scale == "fold" || scale == "ratio" || scale == 'zScore'){
-		userSel <- select.list( names( inDat), multiple = T, 
-				title = "Select reference:" )
-		if( !length(userSel) || !nzchar(userSel) )
+		if(!isShiny){
+			userSel <- select.list( names( inDat), multiple = T, 
+					title = "Select reference:" )
+		}
+		else{
+			userSel <- shiny_cmp_list
+		}
+		if( !length(userSel) || !nzchar(userSel) ){
 			stop('No file selected')
+		}
 		normCol <- match(userSel, names(inDat))
 		inDat <- foldChange( inTable = inDat, normVec = normCol, scale = scale)	
 	}
@@ -406,12 +432,17 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 	##################################################
 
 	## Get user selections
-	if( BoxWhisker || vioPlot || dotPlot || plot3D){
-		userSel <- select.list( com, multiple = T, title = "Select compounds:" )
-		if( !length(userSel) || !nzchar(userSel) ){
-			print('No compounds selected')
-			break
+	if( BoxWhisker || vioPlot || dotPlot){
+		if(!isShiny){
+			userSel <- select.list( com, multiple = T, title = "Select compounds:" )
 		}
+		else{
+			userSel <- shiny_cmp_list
+		}
+		if( !length(userSel) || !nzchar(userSel) ){
+				print('No compounds selected')
+				break
+			}
 		usrRow <- match(userSel, com)
 	}
 
@@ -419,13 +450,21 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 	require(tidyr)
 	require(dplyr)
 	
-	## Compare operating systems for visualization
-	if(.Platform$OS.type=="windows") {
-		quartz<-function() windows()
+	if(!isShiny){
+		## Compare operating systems for visualization
+		if(.Platform$OS.type=="windows") {
+			quartz<-function() windows()
+		}
 	}
 
 	if(vioPlot){
-		userSel <- select.list( unique(sLab), multiple = T )
+
+		if(!isShiny){
+			userSel <- select.list( unique(sLab), multiple = T )
+		}
+		else{
+			userSel <- shiny_grp_list
+		}
 		# make sure list isnt empty 
 		if( !length(userSel) || !nzchar(userSel) ){
 			print('No files selected')
@@ -433,7 +472,6 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 		}
 
 		usrCol <- myMatch(userSel, sLab )
-
 		temp_dat <- inDat[usrRow,usrCol]
 
 		for (numCmp in 1:nrow(temp_dat)){
@@ -478,7 +516,12 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 	}
 
 	if(BoxWhisker){
-		userSel <- select.list( unique(sLab), multiple = T )
+		if(!isShiny){
+			userSel <- select.list( unique(sLab), multiple = T )
+		}
+		else{
+			userSel <- shiny_grp_list
+		}
 		# make sure list isnt empty 
 		if( !length(userSel) || !nzchar(userSel) ){
 			print('No files selected')
@@ -528,7 +571,12 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 	}
 
 	if(dotPlot){
-		userSel <- select.list( unique(sLab), multiple = T )
+		if(!isShiny){
+			userSel <- select.list( unique(sLab), multiple = T )
+		}
+		else{
+			userSel <- shiny_grp_list
+		}
 		# make sure list isnt empty 
 		if( !length(userSel) || !nzchar(userSel) ){
 			print('No files selected')
@@ -539,18 +587,18 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 		temp_dat <- inDat[usrRow,usrCol]
 
 		for (numCmp in 1:nrow(temp_dat)){
-			bar_dat<-temp_dat[numCmp,]
-  
+			dotPlot_dat<-temp_dat[numCmp,]
+			
 		# Need to convert data from wide format to long format for ggplot
-		bar_dat<- bar_dat %>% 
+		dotPlot_dat<- dotPlot_dat %>% 
 			gather(key="Group", value="Intensity")
 				
 		# Remove dot index from label
-		bar_dat$Group <- sapply(strsplit(bar_dat$Group, split = by), function (x) x[1])
+		dotPlot_dat$Group <- sapply(strsplit(dotPlot_dat$Group, split = by), function (x) x[1])
 
 		# Setup window for plotting
 		quartz()
-		plt <- ggplot(data = bar_dat,
+		plt <- ggplot(data = dotPlot_dat,
 						aes(x=Group, 
 							y=Intensity, 
 							fill=Group)) +  
@@ -566,7 +614,7 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 					  text = element_text(size = 16))
 
 		print(plt)
-		
+
 		if (saveFig) {
 			ggsave(paste('Dotplot_Compound',numCmp,'.pdf',sep = "_"),
 			plt,
@@ -587,31 +635,61 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 
 	if(plot3D){
         
-        userSel <- select.list( unique(sLab), multiple = T )
-		# make sure list isnt empty 
-		if( !length(userSel) || !nzchar(userSel) ){
-			print('No files selected')
-			break
+		if(!isShiny){
+			userSel <- select.list( unique(sLab), multiple = T )
+			# make sure list isnt empty 
+			if( !length(userSel) || !nzchar(userSel) ){
+				print('No files selected')
+				break
+			}
+		}
+		else{
+
+			usrCol <- shiny_grp_list
+			
 		}
 
-        usrCol <- myMatch(userSel, sLab )
-		temp_dat <- inDat[usrRow,usrCol]
+		temp_dat <- inDat[,usrCol]
 
-        if(("medMz" %in% colnames(metaDat)) && ("medRt" %in% colnames(metaDat))){
+	if(!("medMz" %in% colnames(metaDat)) || !("medRt" %in% colnames(metaDat))){
             stop("3D plotting requires medMz and medRt\n")
         }
 
         rt <- metaDat$medRt
         mz <- metaDat$medMz
 
-        dat3D <- cbind(rt,mz,temp_dat)
+		compound <- row.names(temp_dat)
 
+		temp_dat <- cbind(compound,temp_dat)
+		
+        dat3D <- cbind(rt,mz,temp_dat)
+		
+		grpsList <- colnames(dat3D)
+		grpsList <-  grpsList[-c(1,2,3)]
+
+		df_temp = data.frame()
+
+		for (i in grpsList){
+		
+		df = data.frame(rt = dat3D$rt,
+						mz = dat3D$mz,
+						intensity = dat3D[,i])
+		
+		df$grpID<-gsub("\\.[0-9]*$","",i)
+		df_temp = rbind(df_temp,df)
+		}
+
+		require(plotly)
+		fig <- plot_ly(x = df_temp$mz, y =df_temp$rt, z =df_temp$intensity,  
+					marker = list(size = 2,  mode='scatter3d'),
+					color = df_temp$grpID,colors = "Dark2")
+		print_app(fig)
 		return(dat3D)
-	}
+		}
 }
 
 
-## This function takes a METen-format list and makes several types of plots
+## This function takes a Maven format list and makes several types of plots
 ## inDat - Input data
 ## pCst - Logical - TRUE ranks rows by P value 
 ## nCst - Logical - TRUE sorts samples by name
