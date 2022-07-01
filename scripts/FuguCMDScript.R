@@ -13,6 +13,43 @@ source(file.choose())
 #Load S1 - Data 
 dat <- fuguRead()
 
+
+#Heatmap
+fuguPlot(dat,heatMap = T,rCst=T)
+#3D plot
+plot3D_data <- fuguPlot(dat,plot3D = T)
+#ViolinPlot
+vio <- fuguPlot(dat,vioPlot = T)
+#BoxPlot
+bar <- fuguPlot(dat,BoxWhisker = T)
+#DotPlot
+dot <- fuguPlot(dat,dotPlot = T)
+
+
+############################
+by = "\\."
+sam <- names(dat)
+sLab <- sapply( strsplit(sam, split = by), function (x) x[1])
+sLab <- sLab[-c(1,2,3)]
+grpSel <- select.list( unique(sLab), multiple = T)
+
+
+com <- dat$compound
+cmpSel <- select.list( com, multiple = T, title = "Select compounds:" )
+
+#3D plot
+plot3D_data <- fuguPlot(dat,plot3D = T,
+                        isShiny = T,shiny_grp_list=grpSel)
+#ViolinPlot
+vio <- fuguPlot(dat,vioPlot = T,
+                isShiny = T,shiny_grp_list=grpSel,shiny_cmp_list =cmpSel)
+#BoxPlot
+bar <- fuguPlot(dat,BoxWhisker = T,
+                isShiny = T,shiny_grp_list=grpSel,shiny_cmp_list =cmpSel)
+#DotPlot
+dot <- fuguPlot(dat,dotPlot = T,
+                isShiny = T,shiny_grp_list=grpSel,shiny_cmp_list =cmpSel)
+
 # Run ANOVA on all markers and filter insignificant
 alpha_val <- 0.05
 pDat <- fuguStats(dat, pCalc = T)                 
