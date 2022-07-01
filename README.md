@@ -1,11 +1,11 @@
 # FUGU-MS
 Filtering utility for grouping untargeted mass spectrometry datasets.
 
-![FUGU-MS Logo](assets/Logo.png)
+![FUGU-MS Logo](Application/assets/Logo.png)
 
 ## FUGU-App
 
-![FUGU-App Landing Page](assets/FUGU-AppLandingPage.png)
+![FUGU-App Landing Page](Application/assets/FUGU-AppLandingPage.png)
 
 To deploy the application locally, the user must have R and the following packages installed.
 

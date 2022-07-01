@@ -1,20 +1,19 @@
-# Fugo App
+# Fugu-MS App
 
 library(shiny)
 library(shinydashboard)
 library(shinyWidgets)
 library(shinybusy)
 
-source("fugoMS_app.R")
+source("fuguMS_app.R")
 
-
-# Helper Functions for data analysis ----
+# Helper Functions ----
 # stats_choices <- c('P-Value' = 1, 'Threshold' = 2, 'Fold Change' = 3)
 stats_choices <- c('P-Value' = 1, 'Threshold' = 2)
 
 PValueCalculation <- function(dat, pThresh = 1){
   alpha_val <- 0.05
-  pDat <- fugoStats(dat, pCalc = T, pThresh = pThresh)
+  pDat <- fuguStats(dat, pCalc = T, pThresh = pThresh)
   num_samples = nrow(pDat)
   idx_p <- pDat$pVal < alpha_val/(num_samples)
   pDat <- pDat[idx_p,]
@@ -27,7 +26,7 @@ PValueCalculation <- function(dat, pThresh = 1){
 
 ThresholdCalculation <- function(dat, threshold = 20000){
   # Calculate the average threshold per species 
-  mDat <- fugoStats(dat, avgRep = T)      
+  mDat <- fuguStats(dat, avgRep = T)      
   
   # Remove markers if the max average across all groups < given threshold
   thresh_num <- threshold
@@ -42,14 +41,14 @@ ThresholdCalculation <- function(dat, threshold = 20000){
 
 FoldCalculation <- function(dat, fold = 4, reference = 1){
   # Calculate the average threshold per species 
-  mDat <- fugoStats(dat, avgRep = T)      
+  mDat <- fuguStats(dat, avgRep = T)      
   
   # filter markers from data set if the threshold is less than 
   # 4-fold change in comparison to MHB
   thresh_fold <- fold
 
   # select MHB or 1 as reference when calling this function
-  fDat <- fugoStats(mDat, scale = 'fold')
+  fDat <- fuguStats(mDat, scale = 'fold')
   idx_fold <- (apply(abs(metaSep(fDat)$data), 1, max) > thresh_fold)
 
   ## Find data with correct intensity and fold change
@@ -77,7 +76,7 @@ sendWarningAlert <- function(session, headerText, messageText, isSuccess = FALSE
   )
 }
 
-# Define UI for app that draws a histogram ----
+# Define UI for app ----
 ui <- dashboardPage(
   skin = 'yellow',
 
@@ -94,7 +93,7 @@ ui <- dashboardPage(
         div(
           style = 'padding: 20px',
           imageOutput(
-            outputId = "fugoLogo",
+            outputId = "fuguLogo",
             height = '200px',
           )
         ),
@@ -258,14 +257,14 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=30*1024^2)
   
-  output$fugoLogo <- renderImage({
+  output$fuguLogo <- renderImage({
     
     list(
       src = "assets/Logo.png",
       contentType = "image/png",
       width = '300px',
       # height = '100%',
-      alt = "Fugo"
+      alt = "Fugu"
     )
     
   }, deleteFile = FALSE)
@@ -303,22 +302,22 @@ server <- function(input, output, session) {
     
     output$contents <- DT::renderDataTable({
       plotData
-      # fugoStats(plotData, avgRep = T)
+      # fuguStats(plotData, avgRep = T)
     })
     
     output$heatmap <- renderPlot({
-      fugoPlot(plotData, heatMap = T, scale = 'row', rCst = T, grid = F, cCst = F)
+      fuguPlot(plotData, heatMap = T, scale = 'row', rCst = T, grid = F, cCst = F)
     },
     res = 96
     )
     
     output$violin <- renderPlot({
-      # fugoPlot(plotData,vioPlot = T)
+      # fuguPlot(plotData,vioPlot = T)
     },
     res = 96
     )
     
-    underConstructionMessage <- 'Not currently available. Refer to FugoCMDScript for information on using command line functions to visualize data.'
+    underConstructionMessage <- 'Not currently available. Refer to FuguCMDScript for information on using command line functions to visualize data.'
     
     output$textPca <- renderText({
       paste(underConstructionMessage)
@@ -334,15 +333,15 @@ server <- function(input, output, session) {
     
     output$downloadHeatMap <- downloadHandler(
       
-      filename = "fugo_HeatMap.png",
+      filename = "fugu_HeatMap.png",
       content = function(file) {
         png(file)
-        print(fugoPlot(plotData, heatMap = T, scale = 'row', rCst = T, grid = F, cCst = F))
+        print(fuguPlot(plotData, heatMap = T, scale = 'row', rCst = T, grid = F, cCst = F))
         dev.off()
       })
     
     output$downloadDataTable <- downloadHandler(
-      filename = "fugo_HeatMap.csv",
+      filename = "fugu_HeatMap.csv",
       content = function(file) {
         write.csv(plotData, file)
       })

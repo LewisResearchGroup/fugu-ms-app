@@ -1,5 +1,5 @@
 ################################################################################
-##   FUGO-MS Tools for processing and visualization of mass spectroscpy files ##
+##   Fugu-MS Tools for processing and visualization of mass spectroscpy files ##
 ################################################################################
 ##    Original Auther: Ian Lewis											  ##
 ##    Last Edit: Raied Aburashed 											  ##
@@ -26,12 +26,12 @@
 ##                                                                            ##
 ################################################################################
 # Read Files
-fugoRead <- function( inPath = file.choose()){
+fuguRead <- function( inPath = file.choose()){
 	return(read.csv( inPath, head = TRUE, stringsAsFactors = FALSE))
 } 
 
 # Write Files 
-fugoWrite <- function( table ){
+fuguWrite <- function( table ){
 	write.csv( table, file.choose(new=TRUE), quote = FALSE, row.names = FALSE )
 }
 ################################################################################
@@ -318,7 +318,7 @@ stdErr <- function( x ){
 
 ##             note: this cannot be used with column/p clustering or thresholding
 ## returns the dataframe used to plot the data
-fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,rCst = F, cCst = F,
+fuguPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,rCst = F, cCst = F,
         scale = c("log", "durbin", "row", "column", "fold", "ratio", "zScore", "none"),
 		pca = F, returnPCA = F, returnMeta = T, heatMap = F, sLab,vioPlot = F,dotPlot = F,
         BoxWhisker = F,plot3D=F,n=10,
@@ -636,7 +636,7 @@ fugoPlot <- function(inDat,by = "\\.",excludeName = NULL, na.rm  = T,rmZero = F,
 ##             note: this cannot be used with column/p clustering or thresholding
 ## rmZero - logical - removes rows with all zero intensities
 ## returns the dataframe used to plot the data
-fugoStats <- function(inDat, pCst = F, nCst = F, 
+fuguStats <- function(inDat, pCst = F, nCst = F, 
 		usrSelect = F, sdRep = F, by = "\\.", excludeName = NULL, 
 		scale = c("log", "durbin", "row", "column", "fold", "ratio", "zScore", "none"), 
 		inverse = F, durbScale = 1, n = 10, maxDup = F, avgRep = F,  na.rm  = T, sLab, dThresh,
@@ -824,7 +824,7 @@ fugoStats <- function(inDat, pCst = F, nCst = F,
 ## adList - numeric vector - list of known adducts
 ## collapse - logical - T collapses groups to highest intensity signal
 ## clusterOnly - logical - T returns collapsed groups with multiple signals
-fugoCluster <- function( mzTable, mzThresh = 10,rtThresh = .5,pW = c(1,1,1), pThresh = 0.75,
+fuguCluster <- function( mzTable, mzThresh = 10,rtThresh = .5,pW = c(1,1,1), pThresh = 0.75,
 		adList = c(0, 1.003355, 1.007825, 22.9897692809, 18.010565, 43.99038, 34.968853),
         collapse = FALSE, clusterOnly = FALSE){
 	

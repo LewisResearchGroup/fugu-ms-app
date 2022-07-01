@@ -7,15 +7,15 @@
 # Set Working Directory
 setwd('~/Desktop/Fugo')
 
-#Load in source code library, FUGO
+#Load in source code library, Fugu
 source(file.choose())
 
 #Load S1 - Data 
-dat <- fugoRead()
+dat <- fuguRead()
 
 # Run ANOVA on all markers and filter insignificant
 alpha_val <- 0.05
-pDat <- fugoStats(dat, pCalc = T)                 
+pDat <- fuguStats(dat, pCalc = T)                 
 num_samples = nrow(pDat)
 idx_p <- pDat$pVal < alpha_val/(num_samples)      # bonferroni Correction and filter
 pDat <- pDat[idx_p,]
@@ -25,11 +25,11 @@ alpha_val/(num_samples)
 pDat <- na.omit(pDat) 
 
 #
-fugoPlot(pDat,heatMap = T,rCst=T)
+fuguPlot(pDat,heatMap = T,rCst=T)
 
 # Calculate the average threshold per species 
-mDat <- fugoStats(pDat, avgRep = T)  
-fugoPlot(mDat,heatMap = T,rCst=T)
+mDat <- fuguStats(pDat, avgRep = T)  
+fuguPlot(mDat,heatMap = T,rCst=T)
 
 
 # Remove markers if the max average across all groups < 20000
@@ -42,16 +42,16 @@ length(idx_num[idx_num== TRUE])
 # 4-fold change in comparison to MHB
 thresh_fold <- 4
 # select MHB or 1 as reference when calling this function 
-fDat <- fugoStats(mDat, scale = 'fold')        
+fDat <- fuguStats(mDat, scale = 'fold')        
 idx_fold <- (apply(abs(metaSep(fDat)$data), 1, max) > thresh_fold)
 
 ## Find data with correct intensity, pValue and fold change (533 markers)
 idx <- which((idx_num + idx_fold) == 2)
 out <- pDat[idx,]
 
-fugoPlot(out,heatMap = T,rCst=T)
+fuguPlot(out,heatMap = T,rCst=T)
 
-fugoWrite(out)
+fuguWrite(out)
 ################################################################################
 ##                                                                            ##
 ##               Command-line script for Clustering                           ##
@@ -84,8 +84,8 @@ METPlot(cDatCleaned, heat = T, scale = 'row', rCst = T, grid = F, cCst = F)
 ##                                                                            ##
 ################################################################################
 
-vio <- fugoPlot(out,vioPlot = T,saveFig = T)
-bar <- fugoPlot(out,barPlot = T,saveFig = T)
-dot <- fugoPlot(out,dotPlot = T,saveFig = T)
+vio <- fuguPlot(out,vioPlot = T,saveFig = T)
+bar <- fuguPlot(out,barPlot = T,saveFig = T)
+dot <- fuguPlot(out,dotPlot = T,saveFig = T)
 
 ################################################################################
