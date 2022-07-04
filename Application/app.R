@@ -160,7 +160,7 @@ ui <- dashboardPage(
               max = 1,
               step = 0.1,
               width = "100%"
-            ),
+            )
           ),
           column(
             width = 6,
@@ -171,7 +171,7 @@ ui <- dashboardPage(
               20000,
               step = 10000,
               width = "100%"
-            ),
+            )
           )
         ),
         fluidRow(
@@ -183,7 +183,7 @@ ui <- dashboardPage(
                          4,
                          min = 1,
                          # max = 10000,
-                         width = "100%"),
+                         width = "100%")
           ),
           column(
             width = 8,
@@ -204,7 +204,7 @@ ui <- dashboardPage(
               multiple = TRUE,
               width = "100%",
               options = list(`none-selected-text` = "Upload data first...")
-            ),
+            )
           )
         ),
       ),
@@ -309,14 +309,14 @@ ui <- dashboardPage(
               label = "Scale",
               choices = scaleChoices,
               multiple = FALSE,
-              width = "100%",
+              width = "100%"
             )
           ),
           column(
             width = 6,
             ## If fold, ratio, or zScore, scale by:
             conditionalPanel(
-              condition = "input.heatmapScalePicker == "fold" | input.heatmapScalePicker == "ratio" | input.heatmapScalePicker == "zScore"",
+              condition = 'input.heatmapScalePicker == "fold" | input.heatmapScalePicker == "ratio" | input.heatmapScalePicker == "zScore"',
               pickerInput(
                 inputId = "heatmapScaleByPicker",
                 label = "Samples to Scale By",
@@ -357,7 +357,7 @@ ui <- dashboardPage(
               multiple = TRUE,
               width = "100%",
               options = list(`none-selected-text` = "Upload data first...")
-            ),
+            )
           ),
           column(
             width = 6,
@@ -368,7 +368,7 @@ ui <- dashboardPage(
               multiple = FALSE,
               width = "100%",
               options = list(`none-selected-text` = "Upload data first...")
-            ),
+            )
           )
         ),
         actionButton(
@@ -402,7 +402,7 @@ ui <- dashboardPage(
               multiple = TRUE,
               width = "100%",
               options = list(`none-selected-text` = "Upload data first...")
-            ),
+            )
           ),
           column(
             width = 6,
@@ -413,7 +413,7 @@ ui <- dashboardPage(
               multiple = FALSE,
               width = "100%",
               options = list(`none-selected-text` = "Upload data first...")
-            ),
+            )
           )
         ),
         actionButton(
@@ -457,7 +457,7 @@ ui <- dashboardPage(
               multiple = FALSE,
               width = "100%",
               options = list(`none-selected-text` = "Upload data first...")
-            ),
+            )
           )
         ),
         actionButton(
@@ -559,7 +559,7 @@ plotHeatMap <- function(input, output, session, plotData) {
       isFuguApp = TRUE,
       scale = heatmapScale,
       shiny_grp_list = sampleSelected,
-      rCst = rowCluster,
+      rCst = rowCluster
       # cCst = F
     )
   },
@@ -576,7 +576,7 @@ plotHeatMap <- function(input, output, session, plotData) {
           isFuguApp = TRUE,
           scale = heatmapScale,
           shiny_grp_list = sampleSelected,
-          rCst = rowCluster,
+          rCst = rowCluster
           # cCst = F
         )
       )
