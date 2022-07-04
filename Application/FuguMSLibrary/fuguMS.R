@@ -458,7 +458,7 @@ fuguPlot <-
                                title = "Select reference:")
       }
       else{
-        userSel <- shiny_cmp_list
+        userSel <- shiny_grp_list
       }
       if (!length(userSel) || !nzchar(userSel)) {
         stop('No file selected')
@@ -533,7 +533,7 @@ fuguPlot <-
     
     ## Compare operating systems for visualization
     if (.Platform$OS.type == "windows") {
-      quartz <- function()
+      quartz <- function(width = 2)
         windows()
     }
     
@@ -750,10 +750,10 @@ fuguPlot <-
           print('No files selected')
           break
         }
+        usrCol <- myMatch(userSel, sLab)
       }
       else{
         usrCol <- shiny_grp_list
-        
       }
       
       temp_dat <- inDat[, usrCol]

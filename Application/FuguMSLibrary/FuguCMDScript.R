@@ -5,7 +5,7 @@
 ################################################################################
 
 # Set Working Directory
-setwd('~/Desktop/Fugo')
+setwd("~/Desktop/Fugo")
 
 #Load in source code library, Fugu
 source(file.choose())
@@ -42,13 +42,13 @@ cmpSel <-
 #3D plot
 plot3D_data <- fuguPlot(dat,
                         plot3D = T,
-                        isShiny = T,
+                        isFuguApp = T,
                         shiny_grp_list = grpSel)
 #ViolinPlot
 vio <- fuguPlot(
   dat,
   vioPlot = T,
-  isShiny = T,
+  isFuguApp = T,
   shiny_grp_list = grpSel,
   shiny_cmp_list = cmpSel
 )
@@ -56,7 +56,7 @@ vio <- fuguPlot(
 bar <- fuguPlot(
   dat,
   BoxWhisker = T,
-  isShiny = T,
+  isFuguApp = T,
   shiny_grp_list = grpSel,
   shiny_cmp_list = cmpSel
 )
@@ -64,7 +64,7 @@ bar <- fuguPlot(
 dot <- fuguPlot(
   dat,
   dotPlot = T,
-  isShiny = T,
+  isFuguApp = T,
   shiny_grp_list = grpSel,
   shiny_cmp_list = cmpSel
 )
@@ -99,7 +99,7 @@ length(idx_num[idx_num == TRUE])
 # 4-fold change in comparison to MHB
 thresh_fold <- 4
 # select MHB or 1 as reference when calling this function
-fDat <- fuguStats(mDat, scale = 'fold')
+fDat <- fuguStats(mDat, scale = "fold")
 idx_fold <- (apply(abs(metaSep(fDat)$data), 1, max) > thresh_fold)
 
 ## Find data with correct intensity, pValue and fold change (533 markers)
@@ -147,7 +147,7 @@ METWrite(cDatCleaned)				#2
 METPlot(
   cDatCleaned,
   heat = T,
-  scale = 'row',
+  scale = "row",
   rCst = T,
   grid = F,
   cCst = F
