@@ -1,5 +1,6 @@
 # Fugu-MS App
 
+library(plotly)
 library(shiny)
 library(shinydashboard)
 library(shinyWidgets)
@@ -124,16 +125,26 @@ ui <- dashboardPage(
   skin = "yellow",
   
   # App title
-  dashboardHeader(title = "FUGU-MS",
-                  titleWidth = sidePanelWidth),
+  dashboardHeader(
+    title = "FUGU-MS",
+    titleWidth = sidePanelWidth,
+    tags$li(
+      div(
+        tags$a(tags$i(class = "fab fa-github fa-2x"), href="https://github.com/LewisResearchGroup/fugu-ms-app", target="_blank"),
+        tags$head(tags$style(HTML("a {color: black;}"))),
+        style = "padding:11px; padding-right:15px;"
+      ),
+      class = "dropdown"
+    )
+  ),
   
   dashboardSidebar(
     sidebarMenu(
       div(
         style = "padding-top: 10px",
         div(style = "padding: 20px",
-            imageOutput(outputId = "fuguLogo",
-                        height = "200px")),
+            tags$a(imageOutput(outputId = "fuguLogo", height = "200px"), href="https://github.com/LewisResearchGroup/fugu-ms-app", target="_blank")
+            ),
         fileInput(
           inputId = "inputFile",
           label = "Upload Data File",
@@ -145,12 +156,14 @@ ui <- dashboardPage(
         )
       ),
       
-      # hr(),
-      fluidRow(h3("Statistical Analysis"),
-               style = "text-align: center; width: auto;"),
+      # Statistical Analysis
+      fluidRow(
+        h3("Statistical Analysis"),
+        style = "text-align: center; width: auto;"
+      ),
       
       div(
-        style = "padding: 0 15px",
+        style = "padding: 0 15px 20px",
         fluidRow(
           column(
             width = 6,
@@ -180,7 +193,7 @@ ui <- dashboardPage(
         fluidRow(
           column(
             width = 4,
-            style = "padding: 0;",
+            style = "padding: 0; margin: -15px 0",
             numericInput("foldNum",
                          "Fold Change",
                          4,
@@ -190,7 +203,7 @@ ui <- dashboardPage(
           ),
           column(
             width = 8,
-            style = "padding: 0;",
+            style = "padding: 0; margin: -15px 0",
             pickerInput(
               inputId = "referencePicker",
               label = "Reference",
@@ -216,21 +229,52 @@ ui <- dashboardPage(
                       style = "color: steelblue")
         )
       ),
-      
+
+      # Clustering
       br(),
+      hr(),
+      fluidRow(
+        h3("Clustering"),
+        style = "text-align: center; width: auto;"
+      ),
       
-      # actionButton(
-      #   inputId = "clearButton",
-      #   label = "Reset",
-      #   class = "btn-danger",
-      #   style = "width: 40%; margin-left: 30%; margin-right: 30%"
-      # ),
-      
-      actionButton(
-        inputId = "applyButton",
-        label = "Apply",
-        class = "btn-warning",
-        style = "width: 40%; margin-left: 30%; margin-right: 30%"
+      div (
+        style = "padding: 0px 15px;",
+        sliderInput("sliderMz", label = "Mass", min = 0, max = 1, step = 0.1, value = 1, tick = TRUE, width = "100%"),
+        sliderInput("sliderRT", label = "Retention Time", min = 0, max = 1, step = 0.1, value = 1, tick = TRUE, width = "100%"),
+        sliderInput("sliderCov", label = "Covariance", min = 0, max = 1, step = 0.1, value = 1, tick = TRUE, width = "100%"),
+        sliderInput("sliderPthres", label = "P-Threshold", min = 0, max = 1, step = 0.1, value = 0.8, tick = TRUE, width = "100%")
+      ),
+
+      div(
+        style = "padding-top: 4px; float: right;",
+        materialSwitch(
+          inputId = "clusteringToggle", 
+          label = "Apply Clustering", 
+          status = "warning",
+          inline = TRUE
+        ),
+      ),
+
+      br(),
+      br(),
+      hr(),
+      # Button Group
+      div (
+        style = "padding: 40px 0;",
+        # actionButton(
+        #   inputId = "clearButton",
+        #   label = "Reset",
+        #   class = "btn-danger",
+        #   style = "width: 40%; margin-left: 30%; margin-right: 30%"
+        # ),
+        
+        actionButton(
+          inputId = "applyButton",
+          label = "Plot",
+          class = "btn-warning",
+          style = "width: 40%; margin-left: 30%; margin-right: 30%"
+        )
       )
     ),
     width = sidePanelWidth
@@ -297,6 +341,7 @@ ui <- dashboardPage(
           solidHeader = TRUE,
           status = "warning",
           width = NULL,
+          collapsible = TRUE,
           # height = 500,
           fluidRow(
             column(
@@ -346,6 +391,7 @@ ui <- dashboardPage(
           solidHeader = TRUE,
           status = "warning",
           width = NULL,
+          collapsible = TRUE,
           # height = 500,
           fluidRow(column(
             width = 6,
@@ -393,6 +439,7 @@ ui <- dashboardPage(
           solidHeader = TRUE,
           status = "warning",
           width = NULL,
+          collapsible = TRUE,
           # height = 500,
           fluidRow(column(
             width = 6,
@@ -438,6 +485,7 @@ ui <- dashboardPage(
           solidHeader = TRUE,
           status = "warning",
           width = NULL,
+          collapsible = TRUE,
           # height = 500,
           fluidRow(column(
             width = 6,
@@ -473,6 +521,25 @@ ui <- dashboardPage(
           getDownloadButton("downloadDot")
         )
       )
+    ),
+    
+    fluidRow(
+      div(
+        class = "col-sm-12 col-md-12 col-lg-6",
+        box(
+          title = "PCA Plot",
+          solidHeader = TRUE,
+          status = "warning",
+          width = NULL,
+          collapsible = TRUE,
+          fluidRow(
+            column(
+              width = 12,
+              plotlyOutput("pca")
+              ),
+            ),
+        )
+      )
     )
   )
 )
@@ -484,7 +551,7 @@ updateUIList <- function(session, id, updatedList) {
   updatePickerInput(
     session = session,
     inputId = id,
-    selected = updatedList[1],
+    selected = updatedList,
     choices = updatedList,
     options = list(
       `actions-box` = TRUE,
@@ -506,6 +573,11 @@ processData <- function(input, output, session, values) {
   threshold <- input$thresholdNum
   foldValue <- input$foldNum
   referenceMarker <- input$referencePicker
+
+  mz <- input$sliderMz
+  rt <- input$sliderRT
+  cov <- input$sliderCov
+  pThreshCluster <- input$sliderPthres
   
   statSelection <- input$statAnalysisSelect
   if ("1" %in% statSelection)
@@ -523,6 +595,36 @@ processData <- function(input, output, session, values) {
     }
     plotData <-
       FoldCalculation(plotData, foldValue, referenceMarker)
+  }
+
+  if (input$clusteringToggle) {
+    mz_ad <- c(0,
+           0.0005,        #(e-)
+           1.0078,        #(H+)         https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+           1.0062,        #(H neutron), https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+           1.0034,        #(C neutron), https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+           0.9694,        #(N neutron), https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+           18.0106,       #(H2O)        https://hmdb.ca/metabolites/HMDB0002111
+           34.9689,       #(Cl)         https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+           38.9637,       # K           https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+           22.9898,       #(Na)         https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+           44.9977,       #(Formate),   https://hmdb.ca/metabolites/HMDB0304356
+           1.0042,        #(O neutrons) https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+           0.9994,        #(S neutrons) https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+           1.9958,        #(S neutrons) https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+           3.9950         #(S neutrons) https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf
+    )
+
+    cDat <-
+      fuguCluster(
+        plotData,
+        pW = c(mz, rt, cov), #### Mass, Retention Time (0,1), Covariance
+        pThresh = pThreshCluster,##### 
+        adList = mz_ad, #####
+        collapse = FALSE,
+        clusterOnly = FALSE,
+      )
+    plotData <- cDat[!duplicated(cDat$grp), ]
   }
   
   return(plotData)
@@ -724,10 +826,20 @@ plotDot <- function(input, output, session, plotData) {
   return(TRUE)
 }
 
+plotPca <- function(input, output, session, plotData) {
+  # p <- plot_ly(iris, x = ~get(input$choice), y = ~Sepal.Length, type = 'scatter', mode = 'markers')
+  p <- fuguPlot(plotData, pcaPlot = T,pcaLabels = T,pcaVectors = T,pcaNumVectors= 100,pcaVectorNames = F)
+  output$pca <- renderPlotly({
+    p
+  })
+
+  return(TRUE)
+}
+
 # Define Server for app ----
 server <- function(input, output, session) {
   options(shiny.maxRequestSize = 30 * 1024 ^ 2)
-  
+
   output$fuguLogo <- renderImage({
     list(
       src = logoFileLocation,
@@ -779,14 +891,13 @@ server <- function(input, output, session) {
     values$plotData <- processData(input, output, session, values)
     
     output$contents <- DT::renderDataTable({
-      # plotData
-      fuguStats(plotData, avgRep = T)
+      fuguStats(values$plotData, avgRep = T)
     })
     
     output$downloadDataTable <- downloadHandler(
       filename = "fugu_DataTable.csv",
       content = function(file) {
-        write.csv(plotData, file)
+        write.csv(values$plotData, file)
       }
     )
     
@@ -807,6 +918,11 @@ server <- function(input, output, session) {
     
     # Dot Plot
     isSuccess <- plotDot(input, output, session, values$plotData)
+    if (!isSuccess)
+      return (NULL)
+    
+    # Pca Plot
+    isSuccess <- plotPca(input, output, session, values$plotData)
     if (!isSuccess)
       return (NULL)
     

@@ -816,8 +816,8 @@ fuguPlot <-
           color = df_temp$grpID,
           colors = "Dark2"
         )
-      print_app(fig)
-      return(dat3D)
+      # print_app(fig)
+      return(fig)
     }
   }
 
@@ -1503,23 +1503,23 @@ generatePCA <- function( dat,
       else{
         numDisplayVectors = pcaNumVectors
       }
-
+    
           for (i in seq(numDisplayVectors)){
-
+    
             if(pcaVectorNames){
               fig <- fig %>%
               add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2],
-              line = list(color = 'black'),inherit = FALSE, showlegend = FALSE)  %>% 
+              line = list(color = 'black'),inherit = FALSE, showlegend = FALSE)  %>%
               add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = features[i],
               xanchor = 'center', yanchor= 'bottom')
             }
             else{
               fig <- fig %>%
               add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2],
-              line = list(color = 'black'),inherit = FALSE, showlegend = FALSE) 
+              line = list(color = 'black'),inherit = FALSE, showlegend = FALSE)
             }
           }
     }
-    print(fig)
-    return(dat)
+    # print(fig)
+    return(fig)
 }

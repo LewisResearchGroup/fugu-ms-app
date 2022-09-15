@@ -27,6 +27,7 @@ To run the app, simply open an R console, set the directory to the project folde
 
 ```
 setwd("~/fugu-ms-app/Application")
+library(shiny)
 runApp()
 ```
 
