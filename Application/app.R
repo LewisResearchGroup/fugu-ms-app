@@ -89,11 +89,14 @@ FoldCalculation <- function(dat, fold, reference) {
 }
 
 getDownloadButton <- function(inputId) {
-  downloadButton(
-    outputId = inputId,
-    label = downloadButtonLabel,
-    icon = icon("download"),
-    style = "float: right;"
+  div(
+    style = "padding-top: 4px",
+    downloadButton(
+      outputId = inputId,
+      label = downloadButtonLabel,
+      icon = icon("download"),
+      style = "float: right;"
+    )
   )
 }
 
@@ -188,15 +191,6 @@ ui <- dashboardPage(
           column(
             width = 8,
             style = "padding: 0;",
-            # selectInput(
-            #   inputId = "referencePicker",
-            #   label = "Reference",
-            #   choices = NULL,
-            #   width = "100%",
-            #   multiple = T,
-            #   selected = 1,
-            #   # options = list(style = "btn-primary")
-            # ),
             pickerInput(
               inputId = "referencePicker",
               label = "Reference",
@@ -286,6 +280,7 @@ ui <- dashboardPage(
         status = "warning",
         width = 12,
         # height = 500,
+        collapsible = TRUE,
         div(DT::dataTableOutput("contents", width = "100%"),
             style = "overflow-y: scroll;overflow-x: scroll;"),
         br(),
@@ -295,60 +290,64 @@ ui <- dashboardPage(
     
     # Dot, Bar Plot
     fluidRow(
-      box(
-        title = "Heat Map",
-        solidHeader = TRUE,
-        status = "warning",
-        width = 6,
-        # height = 500,
-        fluidRow(
-          column(
-            width = 6,
-            pickerInput(
-              inputId = "heatmapScalePicker",
-              label = "Scale",
-              choices = scaleChoices,
-              multiple = FALSE,
-              width = "100%"
-            )
-          ),
-          column(
-            width = 6,
-            ## If fold, ratio, or zScore, scale by:
-            conditionalPanel(
-              condition = 'input.heatmapScalePicker == "fold" | input.heatmapScalePicker == "ratio" | input.heatmapScalePicker == "zScore"',
+      div(
+        class = "col-sm-12 col-md-12 col-lg-6",
+        box(
+          title = "Heat Map",
+          solidHeader = TRUE,
+          status = "warning",
+          width = NULL,
+          # height = 500,
+          fluidRow(
+            column(
+              width = 6,
               pickerInput(
-                inputId = "heatmapScaleByPicker",
-                label = "Samples to Scale By",
-                choices = NULL,
-                multiple = TRUE,
-                width = "100%",
-                options = list(`none-selected-text` = "Upload data first...")
+                inputId = "heatmapScalePicker",
+                label = "Scale",
+                choices = scaleChoices,
+                multiple = FALSE,
+                width = "100%"
+              )
+            ),
+            column(
+              width = 6,
+              ## If fold, ratio, or zScore, scale by:
+              conditionalPanel(
+                condition = 'input.heatmapScalePicker == "fold" | input.heatmapScalePicker == "ratio" | input.heatmapScalePicker == "zScore"',
+                pickerInput(
+                  inputId = "heatmapScaleByPicker",
+                  label = "Samples to Scale By",
+                  choices = NULL,
+                  multiple = TRUE,
+                  width = "100%",
+                  options = list(`none-selected-text` = "Upload data first...")
+                )
               )
             )
-          )
-        ),
-        actionButton(
-          inputId = "heatmapApplyButton",
-          label = plotButtonLabel,
-          class = "btn-warning",
-          # width = "100%"
-          style = "float: right;"
-        ),
-        fluidRow(column(
-          width = 12,
-          plotOutput("heatmap", width = "100%")
-        )),
-        getDownloadButton("downloadHeatMap")
+          ),
+          actionButton(
+            inputId = "heatmapApplyButton",
+            label = plotButtonLabel,
+            class = "btn-warning",
+            # width = "100%"
+            style = "float: right;"
+          ),
+          fluidRow(column(
+            width = 12,
+            plotOutput("heatmap", width = "100%")
+          )),
+          getDownloadButton("downloadHeatMap")
+        )
       ),
-      box(
-        title = "Violin Plot",
-        solidHeader = TRUE,
-        status = "warning",
-        width = 6,
-        # height = 500,
-        fluidRow(
-          column(
+      div(
+        class = "col-sm-12 col-md-12 col-lg-6",
+        box(
+          title = "Violin Plot",
+          solidHeader = TRUE,
+          status = "warning",
+          width = NULL,
+          # height = 500,
+          fluidRow(column(
             width = 6,
             pickerInput(
               inputId = "violinSamplePicker",
@@ -369,31 +368,33 @@ ui <- dashboardPage(
               width = "100%",
               options = list(`none-selected-text` = "Upload data first...")
             )
-          )
-        ),
-        actionButton(
-          inputId = "violinApplyButton",
-          label = plotButtonLabel,
-          class = "btn-warning",
-          # width = "100%"
-          style = "float: right;"
-        ),
-        fluidRow(column(
-          width = 12,
-          plotOutput("violin", width = "100%")
-        )),
-        getDownloadButton("downloadViolin")
+          )),
+          actionButton(
+            inputId = "violinApplyButton",
+            label = plotButtonLabel,
+            class = "btn-warning",
+            # width = "100%"
+            style = "float: right;"
+          ),
+          fluidRow(column(
+            width = 12,
+            plotOutput("violin", width = "100%")
+          )),
+          getDownloadButton("downloadViolin")
+        )
       )
     ),
+    
     fluidRow(
-      box(
-        title = "Bar Plot",
-        solidHeader = TRUE,
-        status = "warning",
-        width = 6,
-        # height = 500,
-        fluidRow(
-          column(
+      div(
+        class = "col-sm-12 col-md-12 col-lg-6",
+        box(
+          title = "Bar Plot",
+          solidHeader = TRUE,
+          status = "warning",
+          width = NULL,
+          # height = 500,
+          fluidRow(column(
             width = 6,
             pickerInput(
               inputId = "barSamplePicker",
@@ -414,30 +415,31 @@ ui <- dashboardPage(
               width = "100%",
               options = list(`none-selected-text` = "Upload data first...")
             )
-          )
-        ),
-        actionButton(
-          inputId = "barApplyButton",
-          label = plotButtonLabel,
-          class = "btn-warning",
-          # width = "100%"
-          # style = "width: 40%; margin-left: 30%; margin-right: 30%"
-          style = "float: right;"
-        ),
-        fluidRow(column(
-          width = 12,
-          plotOutput("barplot", width = "100%")
-        )),
-        getDownloadButton("downloadBar")
+          )),
+          actionButton(
+            inputId = "barApplyButton",
+            label = plotButtonLabel,
+            class = "btn-warning",
+            # width = "100%"
+            # style = "width: 40%; margin-left: 30%; margin-right: 30%"
+            style = "float: right;"
+          ),
+          fluidRow(column(
+            width = 12,
+            plotOutput("barplot", width = "100%")
+          )),
+          getDownloadButton("downloadBar")
+        )
       ),
-      box(
-        title = "Dot Plot",
-        solidHeader = TRUE,
-        status = "warning",
-        width = 6,
-        # height = 500,
-        fluidRow(
-          column(
+      div(
+        class = "col-sm-12 col-md-12 col-lg-6",
+        box(
+          title = "Dot Plot",
+          solidHeader = TRUE,
+          status = "warning",
+          width = NULL,
+          # height = 500,
+          fluidRow(column(
             width = 6,
             pickerInput(
               inputId = "dotSamplePicker",
@@ -458,18 +460,18 @@ ui <- dashboardPage(
               width = "100%",
               options = list(`none-selected-text` = "Upload data first...")
             )
-          )
-        ),
-        actionButton(
-          inputId = "dotApplyButton",
-          label = plotButtonLabel,
-          class = "btn-warning",
-          # width = "100%"
-          style = "float: right;"
-        ),
-        fluidRow(column(width = 12,
-                        plotOutput("dot", width = "100%"))),
-        getDownloadButton("downloadDot")
+          )),
+          actionButton(
+            inputId = "dotApplyButton",
+            label = plotButtonLabel,
+            class = "btn-warning",
+            # width = "100%"
+            style = "float: right;"
+          ),
+          fluidRow(column(width = 12,
+                          plotOutput("dot", width = "100%"))),
+          getDownloadButton("downloadDot")
+        )
       )
     )
   )
@@ -497,12 +499,7 @@ updateUIList <- function(session, id, updatedList) {
 }
 
 processData <- function(input, output, session, values) {
-  if (is.null(values$data)) {
-    sendWarningAlert(session,
-                     "No File Provided",
-                     "Please upload a data file to continue.")
-    return(NULL)
-  }
+  verifyDataFile(session, values$data)
   
   plotData <- values$data
   pThresh <- input$pvalueNum
@@ -529,6 +526,15 @@ processData <- function(input, output, session, values) {
   }
   
   return(plotData)
+}
+
+verifyDataFile <- function(session, data) {
+  if (is.null(data)) {
+    sendWarningAlert(session,
+                     "No File Provided",
+                     "Please upload a data file to continue.")
+    return(NULL)
+  }
 }
 
 verifyInput <- function(inputParameter, errorMessage, session) {
@@ -733,7 +739,7 @@ server <- function(input, output, session) {
     
   }, deleteFile = FALSE)
   
-  values <- reactiveValues(data = NULL)
+  values <- reactiveValues(data = NULL, plotData = NULL)
   
   observeEvent(input$inputFile, {
     file <- input$inputFile
@@ -759,146 +765,18 @@ server <- function(input, output, session) {
   })
   
   observeEvent(choicesReferenceList(), {
-
-    # updatePickerInput(
-    #   session = session,
-    #   inputId = "referencePicker",
-    #   selected = choicesReferenceList()[1],
-    #   choices = choicesReferenceList(),
-    #   options = list(
-    #     `actions-box` = TRUE,
-    #     # `deselect-all-text` = "Deselect All",
-    #     # `select-all-text` = "Select All",
-    #     `none-selected-text` = "Select reference marker(s)...",
-    #     `selected-text-format` = "count > 3",
-    #     `size` = 5
-    #   ),
-    #   clearOptions = TRUE
-    # )
     updateUIList(session, "referencePicker", choicesReferenceList())
-    
-    # updatePickerInput(
-    #   session = session,
-    #   inputId = "barSamplePicker",
-    #   selected = choicesReferenceList()[1],
-    #   choices = choicesReferenceList(),
-    #   options = list(
-    #     `actions-box` = TRUE,
-    #     # `deselect-all-text` = "Deselect All",
-    #     # `select-all-text` = "Select All",
-    #     `none-selected-text` = "Select sample(s) to plot...",
-    #     `selected-text-format` = "count > 3",
-    #     `size` = 5
-    #   ),
-    #   clearOptions = TRUE
-    # )
     updateUIList(session, "barSamplePicker", choicesReferenceList())
-    
-    # updatePickerInput(
-    #   session = session,
-    #   inputId = "barCompoundPicker",
-    #   selected = values$data$compound[1],
-    #   choices = values$data$compound,
-    #   options = list(
-    #     `actions-box` = TRUE,
-    #     # `deselect-all-text` = "Deselect All",
-    #     # `select-all-text` = "Select All",
-    #     `none-selected-text` = "Select compound(s) to plot...",
-    #     `selected-text-format` = "count > 3",
-    #     `size` = 5
-    #   ),
-    #   clearOptions = TRUE
-    # )
     updateUIList(session, "barCompoundPicker", values$data$compound)
-    
-    # updatePickerInput(
-    #   session = session,
-    #   inputId = "dotSamplePicker",
-    #   selected = choicesReferenceList()[1],
-    #   choices = choicesReferenceList(),
-    #   options = list(
-    #     `actions-box` = TRUE,
-    #     # `deselect-all-text` = "Deselect All",
-    #     # `select-all-text` = "Select All",
-    #     `none-selected-text` = "Select sample(s) to plot...",
-    #     `selected-text-format` = "count > 3",
-    #     `size` = 5
-    #   ),
-    #   clearOptions = TRUE
-    # )
     updateUIList(session, "dotSamplePicker", choicesReferenceList())
-    
-    # updatePickerInput(
-    #   session = session,
-    #   inputId = "dotCompoundPicker",
-    #   selected = values$data$compound[1],
-    #   choices = values$data$compound,
-    #   options = list(
-    #     `actions-box` = TRUE,
-    #     # `deselect-all-text` = "Deselect All",
-    #     # `select-all-text` = "Select All",
-    #     `none-selected-text` = "Select compound(s) to plot...",
-    #     `selected-text-format` = "count > 3",
-    #     `size` = 5
-    #   ),
-    #   clearOptions = TRUE
-    # )
     updateUIList(session, "dotCompoundPicker", values$data$compound)
-    
-    # updatePickerInput(
-    #   session = session,
-    #   inputId = "violinSamplePicker",
-    #   selected = choicesReferenceList()[1],
-    #   choices = choicesReferenceList(),
-    #   options = list(
-    #     `actions-box` = TRUE,
-    #     # `deselect-all-text` = "Deselect All",
-    #     # `select-all-text` = "Select All",
-    #     `none-selected-text` = "Select sample(s) to plot...",
-    #     `selected-text-format` = "count > 3",
-    #     `size` = 5
-    #   ),
-    #   clearOptions = TRUE
-    # )
     updateUIList(session, "violinSamplePicker", choicesReferenceList())
-    
-    # updatePickerInput(
-    #   session = session,
-    #   inputId = "violinCompoundPicker",
-    #   selected = values$data$compound[1],
-    #   choices = values$data$compound,
-    #   options = list(
-    #     `actions-box` = TRUE,
-    #     # `deselect-all-text` = "Deselect All",
-    #     # `select-all-text` = "Select All",
-    #     `none-selected-text` = "Select compound(s) to plot...",
-    #     `selected-text-format` = "count > 3",
-    #     `size` = 5
-    #   ),
-    #   clearOptions = TRUE
-    # )
     updateUIList(session, "violinCompoundPicker", values$data$compound)
-    
-    # updatePickerInput(
-    #   session = session,
-    #   inputId = "heatmapScaleByPicker",
-    #   selected = choicesReferenceList()[1],
-    #   choices = choicesReferenceList(),
-    #   options = list(
-    #     `actions-box` = TRUE,
-    #     # `deselect-all-text` = "Deselect All",
-    #     # `select-all-text` = "Select All",
-    #     `none-selected-text` = "Select sample(s) to plot...",
-    #     `selected-text-format` = "count > 3",
-    #     `size` = 5
-    #   ),
-    #   clearOptions = TRUE
-    # )
     updateUIList(session, "heatmapScaleByPicker", choicesReferenceList())
   })
   
   observeEvent(input$applyButton, {
-    plotData <- processData(input, output, session, values)
+    values$plotData <- processData(input, output, session, values)
     
     output$contents <- DT::renderDataTable({
       # plotData
@@ -913,63 +791,55 @@ server <- function(input, output, session) {
     )
     
     # Heat Map
-    isSuccess <- plotHeatMap(input, output, session, plotData)
+    isSuccess <- plotHeatMap(input, output, session, values$plotData)
     if (!isSuccess)
       return (NULL)
     
     # Violin Plot
-    isSuccess <- plotViolin(input, output, session, plotData)
+    isSuccess <- plotViolin(input, output, session, values$plotData)
     if (!isSuccess)
       return (NULL)
     
     # Bar Plot
-    isSuccess <- plotBar(input, output, session, plotData)
+    isSuccess <- plotBar(input, output, session, values$plotData)
     if (!isSuccess)
       return (NULL)
     
     # Dot Plot
-    isSuccess <- plotDot(input, output, session, plotData)
+    isSuccess <- plotDot(input, output, session, values$plotData)
     if (!isSuccess)
       return (NULL)
     
   })
   
   observeEvent(input$heatmapApplyButton, {
-    plotData <- processData(input, output, session, values)
-    if (is.null(plotData))
-      return(NULL)
+    verifyDataFile (session, values$plotData)
     
-    isSuccess <- plotHeatMap(input, output, session, plotData)
+    isSuccess <- plotHeatMap(input, output, session, values$plotData)
     if (!isSuccess)
       return (NULL)
   })
   
   observeEvent(input$barApplyButton, {
-    plotData <- processData(input, output, session, values)
-    if (is.null(plotData))
-      return(NULL)
+    verifyDataFile (session, values$plotData)
     
-    isSuccess <- plotBar(input, output, session, plotData)
+    isSuccess <- plotBar(input, output, session, values$plotData)
     if (!isSuccess)
       return (NULL)
   })
   
   observeEvent(input$dotApplyButton, {
-    plotData <- processData(input, output, session, values)
-    if (is.null(plotData))
-      return(NULL)
+    verifyDataFile (session, values$plotData)
     
-    isSuccess <- plotDot(input, output, session, plotData)
+    isSuccess <- plotDot(input, output, session, values$plotData)
     if (!isSuccess)
       return (NULL)
   })
   
   observeEvent(input$violinApplyButton, {
-    plotData <- processData(input, output, session, values)
-    if (is.null(plotData))
-      return(NULL)
+    verifyDataFile (session, values$plotData)
     
-    isSuccess <- plotViolin(input, output, session, plotData)
+    isSuccess <- plotViolin(input, output, session, values$plotData)
     if (!isSuccess)
       return (NULL)
   })
