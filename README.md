@@ -14,6 +14,7 @@ To deploy the application locally, the user must have R and the following packag
 
 ```
 install.packages("shiny")
+install.packages("shinydashboard")
 install.packages("shinyWidgets")
 install.packages("shinybusy")
 install.packages("plotly")
@@ -25,7 +26,8 @@ install.packages("dplyr")
 To run the app, simply open an R console, set the directory to the project folder, and deploy the app.
 
 ```
-setwd("~/FUGO-MS/Application")
+setwd("~/fugu-ms-app/Application")
+library(shiny)
 runApp()
 ```
 
