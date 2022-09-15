@@ -1,13 +1,13 @@
 ################################################################################
 ##                                                                            ##
-##               Command-line script to process BSI samples                   ##
+##               Command-line Script to Process Samples                       ##
 ##                                                                            ##
 ################################################################################
 
 # Set Working Directory
-setwd("~/Desktop/Fugo")
+setwd("~/Desktop/Fugu")
 
-#Load in source code library, Fugu
+#Load in source code library, fuguMS.R
 source(file.choose())
 
 #Load S1 - Data
@@ -16,8 +16,6 @@ dat <- fuguRead()
 
 #Heatmap
 fuguPlot(dat, heatMap = T, rCst = T)
-#3D plot
-plot3D_data <- fuguPlot(dat, plot3D = T)
 #ViolinPlot
 vio <- fuguPlot(dat, vioPlot = T)
 #BoxPlot
@@ -25,6 +23,10 @@ bar <- fuguPlot(dat, BoxWhisker = T)
 #DotPlot
 dot <- fuguPlot(dat, dotPlot = T)
 
+#3D plot
+plot3D_data <- fuguPlot(dat, plot3D = T)
+#PCA plot
+pca <- fuguPlot(dat,pcaPlot = T,pcaLabels = T,pcaVectors = T,pcaNumVectors= 100,pcaVectorNames = F)
 
 ############################
 by = "\\."

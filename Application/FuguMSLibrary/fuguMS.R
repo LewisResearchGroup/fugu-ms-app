@@ -3,7 +3,7 @@
 ################################################################################
 ##    Original Author: Ian Lewis											                        ##
 ##    Last Edit: Raied Aburashed, Saad Luqman                                 ##
-## 	  Version: 1.1.0														                              ##
+## 	  Version: 1.2.0														                              ##
 ##   																		                                      ##
 ##    This program is free software: you can redistribute it and/or modify    ##
 ##    it under the terms of the GNU General Public License as published by    ##
@@ -334,7 +334,6 @@ stdErr <- function(x) {
 ################################################################################
 ################################################################################
 ################################################################################
-
 ## This function takes a METen-format list and makes several types of plots
 ## inDat        - el-maven format table
 ## excludeName  - character - names of columns to be excluded from analysis
@@ -391,12 +390,15 @@ fuguPlot <-
                      "ratio",
                      "zScore",
                      "none"),
-           pca = F,
-           returnPCA = F,
            returnMeta = T,
            heatMap = F,
            sLab,
            vioPlot = F,
+           pcaPlot = F,
+           pcaLabels = F,
+           pcaVectors = T,
+           pcaNumVectors = 100,
+           pcaVectorNames = F,
            dotPlot = F,
            BoxWhisker = F,
            plot3D = F,
@@ -536,7 +538,23 @@ fuguPlot <-
       quartz <- function(width = 2)
         windows()
     }
-    
+
+    if(pcaPlot){
+      if(!isFuguApp){
+      }
+      else{
+      }
+
+      outPCA <- generatePCA( dat = inDat,
+                             samples = sam,
+                              compounds = metaDat$compound,
+                              transform = TRUE,
+                              labels = pcaLabels,
+                              pcaVectors = pcaVectors,
+                              pcaNumVectors = pcaNumVectors,
+                              pcaVectorNames = pcaVectorNames)
+      return(outPCA)
+    }
     if (vioPlot) {
       if (!isFuguApp) {
         userSel <- select.list(unique(sLab), multiple = T)
@@ -549,22 +567,23 @@ fuguPlot <-
         print('No files selected')
         break
       }
-      
+
       usrCol <- myMatch(userSel, sLab)
       temp_dat <- inDat[usrRow, usrCol]
-      
+
       for (numCmp in 1:nrow(temp_dat)) {
         vio_dat <- temp_dat[numCmp, ]
-        
+        cmpName <- row.names(vio_dat)
+ 
         # Need to convert data from wide format to long format for ggplot
         vio_dat <- vio_dat %>%
           gather(key = "Group", value = "Intensity")
-        
+ 
         # Remove dot index from label
         vio_dat$Group <-
           sapply(strsplit(vio_dat$Group, split = by), function (x)
             x[1])
-        
+
         # Setup window for plotting
         if (!isFuguApp) quartz()
         plt <- ggplot(data = vio_dat,
@@ -577,9 +596,9 @@ fuguPlot <-
                       position = position_jitter(jitter),
                       alpha = .3) +
           geom_boxplot(width = .05) +
-          labs(title = paste('Compound:', numCmp),
+          labs(title = paste('Compound:', cmpName),
                x = 'Group',
-               y = '') +
+               y = 'Intensity') +
           theme_classic() +
           theme(title =  element_text(size = 18, face = 'bold'),
                 text = element_text(size = 16))
@@ -618,6 +637,8 @@ fuguPlot <-
       
       for (numCmp in 1:nrow(temp_dat)) {
         bar_dat <- temp_dat[numCmp, ]
+        cmpName <- row.names(bar_dat)
+
         
         # Need to convert data from wide format to long format for ggplot
         bar_dat <- bar_dat %>%
@@ -638,7 +659,7 @@ fuguPlot <-
           geom_jitter(shape = 16,
                       position = position_jitter(jitter),
                       alpha = .3) +
-          labs(title = paste('Compound:', numCmp),
+          labs(title = paste('Compound:', cmpName),
                x = 'Group',
                y = '') +
           theme_classic() +
@@ -673,13 +694,13 @@ fuguPlot <-
         print('No files selected')
         break
       }
-      
       usrCol <- myMatch(userSel, sLab)
       temp_dat <- inDat[usrRow, usrCol]
       
       for (numCmp in 1:nrow(temp_dat)) {
         dotPlot_dat <- temp_dat[numCmp, ]
-        
+        cmpName <- row.names(dotPlot_dat)
+
         # Need to convert data from wide format to long format for ggplot
         dotPlot_dat <- dotPlot_dat %>%
           gather(key = "Group", value = "Intensity")
@@ -701,7 +722,7 @@ fuguPlot <-
             alpha = 1.0,
             aes(colour = Group)
           ) +
-          labs(title = paste('Compound:', numCmp),
+          labs(title = paste('Compound:', cmpName),
                x = 'Group',
                y = '') +
           theme_classic() +
@@ -723,7 +744,6 @@ fuguPlot <-
       # Return selected data
       invisible(temp_dat)
     }
-    
     if (heatMap) {
       lDat <- levelFun(inDat,
                        n = n,
@@ -1391,4 +1411,115 @@ findPval <- function(sLab, mzData, type = 'p') {
     
   }
   return(as.vector(unlist(pVal)))
+}
+## Make pca plots of maven data
+## dat - input datatable from readPeak function
+## samples - vector of sample names
+## compounds - vector of compound names
+## trasform - logical (T or F), do you want 
+generatePCA <- function( dat,
+                        samples,
+                        compounds,
+                        transform = FALSE,
+                        labels=FALSE,
+                        pcaVectors=FALSE,
+                        pcaNumVectors = 100,
+                        pcaVectorNames = FALSE){
+    
+    ## Remove any non-numerical data
+    dat <- suppressWarnings(  matrix( as.numeric( as.matrix(dat) ), 
+                    ncol = ncol(dat), nrow = nrow(dat)) )
+    dat[is.na(dat)] <- 0
+    dat[ dat == Inf ] <- max(dat[is.finite(unlist(dat))], na.rm = T) * 100  
+    dat[ dat == -Inf ] <- min(dat[is.finite(unlist(dat))], na.rm = T) / 100     
+    
+    ## Prep datafame for pca
+    dat <- data.frame(t(dat), stringsAsFactors = FALSE)
+    
+    if( transform )
+        dat <- durbin(dat, c = 10 )  
+    names(dat) <- compounds
+    row.names(dat) <- samples
+
+    prin_comp <- prcomp(dat, rank. = 2)
+    components <- prin_comp[["x"]]
+    components <- data.frame(components)
+    ss <- row.names(dat)
+    species <- gsub("\\..*","",row.names(dat))
+    components <- cbind(components,species)
+
+    explained_variance <- summary(prin_comp)[["sdev"]]
+    explained_variance <- explained_variance[1:2]
+    comp <- prin_comp[["rotation"]]
+    loadings <- comp
+
+    for (i in seq(explained_variance)){
+        loadings[,i] <- comp[,i] * explained_variance[i]
+    }
+
+    features = names(dat)
+
+
+    if(labels){
+      fig <- plot_ly(components, x = ~PC1, y = ~PC2, color = ~species, 
+                   colors = c('#636EFA','#EF553B','#00CC96'), 
+                   type = 'scatter',mode = 'markers+text')%>%
+      layout(legend=list(title=list(text='color')),
+            plot_bgcolor='#e5ecf6',
+            xaxis = list(
+                title = "PC 1",
+                zerolinecolor = "#ffff",
+                zerolinewidth = 2,
+                gridcolor='#ffff'),
+            yaxis = list(
+                    title = "PC 2",
+                    zerolinecolor = "#ffff",
+                    zerolinewidth = 2,
+                    gridcolor='#ffff')) %>% 
+                    add_text(text=~ss, textposition="center top", showlegend = F)
+    }
+    else{
+      fig <- plot_ly(components, x = ~PC1, y = ~PC2, color = ~species, 
+                   colors = c('#636EFA','#EF553B','#00CC96'),
+                    type = 'scatter',mode = 'markers')%>%
+            layout(legend=list(title=list(text='color')),
+            plot_bgcolor='#e5ecf6',
+            xaxis = list(
+                title = "PC 1",
+                zerolinecolor = "#ffff",
+                zerolinewidth = 2,
+                gridcolor='#ffff'),
+            yaxis = list(
+                    title = "PC 2",
+                    zerolinecolor = "#ffff",
+                    zerolinewidth = 2,
+                    gridcolor='#ffff')) 
+    }
+
+    if(pcaVectors){
+      if(pcaNumVectors>length(dat)){
+        numDisplayVectors = length(dat)
+      }
+      else{
+        numDisplayVectors = pcaNumVectors
+      }
+
+          for (i in seq(numDisplayVectors)){
+
+            if(pcaVectorNames){
+              fig <- fig %>%
+              add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2],
+              line = list(color = 'black'),inherit = FALSE, showlegend = FALSE)  %>% 
+              add_annotations(x=loadings[i, 1], y=loadings[i, 2], ax = 0, ay = 0,text = features[i],
+              xanchor = 'center', yanchor= 'bottom')
+            }
+            else{
+              fig <- fig %>%
+              add_segments(x = 0, xend = loadings[i, 1], y = 0, yend = loadings[i, 2],
+              line = list(color = 'black'),inherit = FALSE, showlegend = FALSE) 
+            }
+          }
+    }
+    print(fig)
+    return(dat)
 }
